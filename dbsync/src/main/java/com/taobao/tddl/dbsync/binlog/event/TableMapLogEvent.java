@@ -326,8 +326,8 @@ public final class TableMapLogEvent extends LogEvent {
      * </ul>
      * Source : http://forge.mysql.com/wiki/MySQL_Internals_Binary_Log
      */
-    protected String dbname;
-    protected String tblname;
+    protected final String dbname;
+    protected final String tblname;
 
     /**
      * Holding mysql column information.
@@ -418,7 +418,6 @@ public final class TableMapLogEvent extends LogEvent {
         buffer.position(commonHeaderLen + postHeaderLen);
         dbname = buffer.getString();
         buffer.forward(1); /* termination null */
-        // fixed issue #2714
         tblname = buffer.getString();
         buffer.forward(1); /* termination null */
 
@@ -601,7 +600,7 @@ public final class TableMapLogEvent extends LogEvent {
 
     private void parse_signedness(LogBuffer buffer, int length) {
         // stores the signedness flags extracted from field
-        List<Boolean> datas = new ArrayList<>();
+        List<Boolean> datas = new ArrayList<Boolean>();
         for (int i = 0; i < length; i++) {
             int ut = buffer.getUint8();
             for (int c = 0x80; c != 0; c >>= 1) {
@@ -622,7 +621,7 @@ public final class TableMapLogEvent extends LogEvent {
         // stores collation numbers extracted from field.
         int limit = buffer.position() + length;
         this.default_charset = (int) buffer.getPackedLong();
-        List<TableMapLogEvent.Pair> datas = new ArrayList<>();
+        List<TableMapLogEvent.Pair> datas = new ArrayList<TableMapLogEvent.Pair>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int col_index = (int) buffer.getPackedLong();
             int col_charset = (int) buffer.getPackedLong();
@@ -639,7 +638,7 @@ public final class TableMapLogEvent extends LogEvent {
     private List<Integer> parse_column_charset(LogBuffer buffer, int length) {
         // stores collation numbers extracted from field.
         int limit = buffer.position() + length;
-        List<Integer> datas = new ArrayList<>();
+        List<Integer> datas = new ArrayList<Integer>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int col_charset = (int) buffer.getPackedLong();
             datas.add(col_charset);
@@ -664,10 +663,10 @@ public final class TableMapLogEvent extends LogEvent {
         // into a string separate vector. All of them are stored
         // in 'vec'.
         int limit = buffer.position() + length;
-        List<List<String>> datas = new ArrayList<>();
+        List<List<String>> datas = new ArrayList<List<String>>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int count = (int) buffer.getPackedLong();
-            List<String> data = new ArrayList<>(count);
+            List<String> data = new ArrayList<String>(count);
             for (int i = 0; i < count; i++) {
                 int len1 = (int) buffer.getPackedLong();
                 data.add(buffer.getFixString(len1));
@@ -694,7 +693,7 @@ public final class TableMapLogEvent extends LogEvent {
         // stores geometry column's types extracted from field.
         int limit = buffer.position() + length;
 
-        List<Integer> datas = new ArrayList<>();
+        List<Integer> datas = new ArrayList<Integer>();
         while (buffer.hasRemaining() && buffer.position() < limit) {
             int col_type = (int) buffer.getPackedLong();
             datas.add(col_type);
@@ -791,22 +790,6 @@ public final class TableMapLogEvent extends LogEvent {
 
     public final String getTableName() {
         return tblname;
-    }
-
-    public String getDbname() {
-        return dbname;
-    }
-
-    public void setDbname(String dbname) {
-        this.dbname = dbname;
-    }
-
-    public String getTblname() {
-        return tblname;
-    }
-
-    public void setTblname(String tblname) {
-        this.tblname = tblname;
     }
 
     public final int getColumnCnt() {

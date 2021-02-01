@@ -22,7 +22,8 @@ public class MysqlBinlogEventPerformanceTest {
     protected static Charset charset = Charset.forName("utf-8");
 
     public static void main(String args[]) {
-        try (DirectLogFetcher fetcher = new DirectLogFetcher()) {
+        DirectLogFetcher fetcher = new DirectLogFetcher();
+        try {
             MysqlConnector connector = new MysqlConnector(new InetSocketAddress("127.0.0.1", 3306), "root", "hello");
             connector.connect();
             updateSettings(connector);
@@ -48,6 +49,11 @@ public class MysqlBinlogEventPerformanceTest {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                fetcher.close();
+            } catch (IOException e) {
+            }
         }
     }
 

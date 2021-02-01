@@ -3,6 +3,7 @@ package com.alibaba.otter.canal.client.adapter.rdb.support;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -59,10 +60,10 @@ public class SyncUtil {
     /**
      * 设置 preparedStatement
      *
-     * @param type sqlType
+     * @param type  sqlType
      * @param pstmt 需要设置的preparedStatement
      * @param value 值
-     * @param i 索引号
+     * @param i     索引号
      */
     public static void setPStmt(int type, PreparedStatement pstmt, Object value, int i) throws SQLException {
         switch (type) {
@@ -97,6 +98,8 @@ public class SyncUtil {
                     pstmt.setByte(i, ((Number) value).byteValue());
                 } else if (value instanceof String) {
                     pstmt.setByte(i, Byte.parseByte((String) value));
+                } else if (value instanceof Boolean) {
+                    pstmt.setBoolean(i, (Boolean) value);
                 } else {
                     pstmt.setNull(i, type);
                 }
@@ -120,7 +123,9 @@ public class SyncUtil {
                 }
                 break;
             case Types.BIGINT:
-                if (value instanceof Number) {
+                if (value instanceof BigInteger) {
+                    pstmt.setObject(i, value);
+                } else if (value instanceof Number) {
                     pstmt.setLong(i, ((Number) value).longValue());
                 } else if (value instanceof String) {
                     pstmt.setLong(i, Long.parseLong((String) value));
@@ -262,9 +267,9 @@ public class SyncUtil {
     public static String getDbTableName(MappingConfig.DbMapping dbMapping) {
         String result = "";
         if (StringUtils.isNotEmpty(dbMapping.getTargetDb())) {
-            result += ("`" + dbMapping.getTargetDb() + "`.");
+            result += dbMapping.getTargetDb() + ".";
         }
-        result += ("`" + dbMapping.getTargetTable() + "`");
+        result += dbMapping.getTargetTable();
         return result;
     }
 }

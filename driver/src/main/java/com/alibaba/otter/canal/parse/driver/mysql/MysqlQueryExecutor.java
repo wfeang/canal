@@ -64,7 +64,7 @@ public class MysqlQueryExecutor {
         ResultSetHeaderPacket rsHeader = new ResultSetHeaderPacket();
         rsHeader.fromBytes(body);
 
-        List<FieldPacket> fields = new ArrayList<>();
+        List<FieldPacket> fields = new ArrayList<FieldPacket>();
         for (int i = 0; i < rsHeader.getColumnCount(); i++) {
             FieldPacket fp = new FieldPacket();
             fp.fromBytes(readNextPacket());
@@ -73,7 +73,7 @@ public class MysqlQueryExecutor {
 
         readEofPacket();
 
-        List<RowDataPacket> rowData = new ArrayList<>();
+        List<RowDataPacket> rowData = new ArrayList<RowDataPacket>();
         while (true) {
             body = readNextPacket();
             if (body[0] == -2) {
@@ -99,7 +99,7 @@ public class MysqlQueryExecutor {
         cmd.setQueryString(queryString);
         byte[] bodyBytes = cmd.toBytes();
         PacketManager.writeBody(channel, bodyBytes);
-        List<ResultSetPacket> resultSets = new ArrayList<>();
+        List<ResultSetPacket> resultSets = new ArrayList<ResultSetPacket>();
         boolean moreResult = true;
         while (moreResult) {
             byte[] body = readNextPacket();
@@ -112,7 +112,7 @@ public class MysqlQueryExecutor {
             ResultSetHeaderPacket rsHeader = new ResultSetHeaderPacket();
             rsHeader.fromBytes(body);
 
-            List<FieldPacket> fields = new ArrayList<>();
+            List<FieldPacket> fields = new ArrayList<FieldPacket>();
             for (int i = 0; i < rsHeader.getColumnCount(); i++) {
                 FieldPacket fp = new FieldPacket();
                 fp.fromBytes(readNextPacket());
@@ -121,7 +121,7 @@ public class MysqlQueryExecutor {
 
             moreResult = readEofPacket();
 
-            List<RowDataPacket> rowData = new ArrayList<>();
+            List<RowDataPacket> rowData = new ArrayList<RowDataPacket>();
             while (true) {
                 body = readNextPacket();
                 if (body[0] == -2) {

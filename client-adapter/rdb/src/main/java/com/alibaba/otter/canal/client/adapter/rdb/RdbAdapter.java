@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.alibaba.otter.canal.client.adapter.rdb.service.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -19,9 +20,6 @@ import com.alibaba.otter.canal.client.adapter.rdb.config.ConfigLoader;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MappingConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.config.MirrorDbConfig;
 import com.alibaba.otter.canal.client.adapter.rdb.monitor.RdbConfigMonitor;
-import com.alibaba.otter.canal.client.adapter.rdb.service.RdbEtlService;
-import com.alibaba.otter.canal.client.adapter.rdb.service.RdbMirrorDbSyncService;
-import com.alibaba.otter.canal.client.adapter.rdb.service.RdbSyncService;
 import com.alibaba.otter.canal.client.adapter.rdb.support.SyncUtil;
 import com.alibaba.otter.canal.client.adapter.support.Dml;
 import com.alibaba.otter.canal.client.adapter.support.EtlResult;
@@ -140,16 +138,29 @@ public class RdbAdapter implements OuterAdapter {
 
         boolean skipDupException = BooleanUtils.toBoolean(configuration.getProperties()
             .getOrDefault("skipDupException", "true"));
-        rdbSyncService = new RdbSyncService(dataSource,
-            threads != null ? Integer.valueOf(threads) : null,
-            skipDupException);
+        if(properties.get("jdbc.driverClassName").equals("ru.yandex.clickhouse.ClickHouseDriver")){
 
-        rdbMirrorDbSyncService = new RdbMirrorDbSyncService(mirrorDbConfigCache,
-            dataSource,
-            threads != null ? Integer.valueOf(threads) : null,
-            rdbSyncService.getColumnsTypeCache(),
-            skipDupException);
 
+            rdbSyncService = new ClickHouseRdbSyncService(dataSource,
+                    threads != null ? Integer.valueOf(threads) : null,
+                    skipDupException);
+            rdbMirrorDbSyncService = new ClickHouseRdbMirrorDbSyncService(mirrorDbConfigCache,
+                    dataSource,
+                    threads != null ? Integer.valueOf(threads) : null,
+                    rdbSyncService.getColumnsTypeCache(),
+                    skipDupException);
+
+        }else{
+            rdbSyncService = new RdbSyncService(dataSource,
+                    threads != null ? Integer.valueOf(threads) : null,
+                    skipDupException);
+
+            rdbMirrorDbSyncService = new RdbMirrorDbSyncService(mirrorDbConfigCache,
+                    dataSource,
+                    threads != null ? Integer.valueOf(threads) : null,
+                    rdbSyncService.getColumnsTypeCache(),
+                    skipDupException);
+        }
         rdbConfigMonitor = new RdbConfigMonitor();
         rdbConfigMonitor.init(configuration.getKey(), this, envProperties);
     }
@@ -183,7 +194,7 @@ public class RdbAdapter implements OuterAdapter {
     public EtlResult etl(String task, List<String> params) {
         EtlResult etlResult = new EtlResult();
         MappingConfig config = rdbMapping.get(task);
-        RdbEtlService rdbEtlService = new RdbEtlService(dataSource, config);
+        RdbEtlService rdbEtlService = new ClickHouseRdbEtlService(dataSource, config);
         if (config != null) {
             return rdbEtlService.importData(params);
         } else {

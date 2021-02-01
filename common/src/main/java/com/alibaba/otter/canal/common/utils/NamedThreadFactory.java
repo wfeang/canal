@@ -19,14 +19,18 @@ public class NamedThreadFactory implements ThreadFactory {
     final private boolean                 daemon;
     final private ThreadGroup             group;
     final private AtomicInteger           threadNumber             = new AtomicInteger(0);
-    final static UncaughtExceptionHandler uncaughtExceptionHandler = (t, e) -> {
-                                                                        if (e instanceof InterruptedException
-                                                                            || (e.getCause() != null && e.getCause() instanceof InterruptedException)) {
-                                                                            return;
-                                                                        }
+    final static UncaughtExceptionHandler uncaughtExceptionHandler = new UncaughtExceptionHandler() {
 
-                                                                        logger.error("from " + t.getName(), e);
-                                                                    };
+                                                                       public void uncaughtException(Thread t,
+                                                                                                     Throwable e) {
+                                                                           if (e instanceof InterruptedException
+                                                                               || (e.getCause() != null && e.getCause() instanceof InterruptedException)) {
+                                                                               return;
+                                                                           }
+
+                                                                           logger.error("from " + t.getName(), e);
+                                                                       }
+                                                                   };
 
     public NamedThreadFactory(){
         this(DEFAULT_NAME, true);

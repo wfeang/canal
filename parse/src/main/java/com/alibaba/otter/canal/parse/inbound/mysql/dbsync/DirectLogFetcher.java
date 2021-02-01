@@ -150,7 +150,11 @@ public class DirectLogFetcher extends LogFetcher {
             close(); /* Do cleanup */
             logger.error("Socket timeout expired, closing connection", e);
             throw e;
-        } catch (InterruptedIOException | ClosedByInterruptException e) {
+        } catch (InterruptedIOException e) {
+            close(); /* Do cleanup */
+            logger.info("I/O interrupted while reading from client socket", e);
+            throw e;
+        } catch (ClosedByInterruptException e) {
             close(); /* Do cleanup */
             logger.info("I/O interrupted while reading from client socket", e);
             throw e;

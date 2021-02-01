@@ -4,7 +4,7 @@
     <artifactId>canal</artifactId>
     <packaging>pom</packaging>
     <name>canal module for otter ${project.version}</name>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.4</version>
     <url>https://github.com/alibaba/canal</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -46,43 +46,13 @@
     </scm>
 
     <repositories>
+        <!--私有仓库-->
         <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
+            <id>nexus</id>
+            <name>nexus</name>
+            <url>http://172.16.0.241:8081/repository/maven-public/</url>
             <releases>
                 <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>java.net</id>
-            <url>http://download.java.net/maven/2/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>sonatype</id>
-            <name>sonatype</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>sonatype-release</id>
-            <name>sonatype-release</name>
-            <url>https://oss.sonatype.org/service/local/repositories/releases/content</url>
-            <releases>
-                <enabled>false</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
@@ -99,7 +69,8 @@
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
         <javadoc_skip>true</javadoc_skip>
-        <spring_version>5.0.5.RELEASE</spring_version>
+        <spring_version>3.2.18.RELEASE</spring_version>
+        <rocketmq_version>4.5.2</rocketmq_version>
         <maven-jacoco-plugin.version>0.8.3</maven-jacoco-plugin.version>
         <maven-surefire.version>2.22.1</maven-surefire.version>
         <argline>-server -Xms512m -Xmx1024m -Dfile.encoding=UTF-8
@@ -110,24 +81,23 @@
     </properties>
 
     <modules>
-        <module>common</module>
-        <module>meta</module>
-        <module>dbsync</module>
-        <module>filter</module>
-        <module>driver</module>
-        <module>parse</module>
-        <module>sink</module>
-        <module>store</module>
-        <module>protocol</module>
-        <module>instance</module>
-        <module>server</module>
-        <module>client</module>
-        <module>deployer</module>
-        <module>example</module>
-        <module>prometheus</module>
-        <module>admin</module>
+<!--        <module>common</module>-->
+<!--        <module>meta</module>-->
+<!--        <module>dbsync</module>-->
+<!--        <module>filter</module>-->
+<!--        <module>driver</module>-->
+<!--        <module>parse</module>-->
+<!--        <module>sink</module>-->
+<!--        <module>store</module>-->
+<!--        <module>protocol</module>-->
+<!--        <module>instance</module>-->
+<!--        <module>server</module>-->
+<!--        <module>client</module>-->
+<!--        <module>deployer</module>-->
+<!--        <module>example</module>-->
+<!--        <module>prometheus</module>-->
         <module>client-adapter</module>
-        <module>connector</module>
+<!--        <module>canal-admin</module>-->
     </modules>
 
     <dependencyManagement>
@@ -220,22 +190,17 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.58.sec06</version>
+                <version>1.2.58</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>22.0</version>
+                <version>18.0</version>
             </dependency>
             <dependency>
                 <groupId>com.googlecode.aviator</groupId>
                 <artifactId>aviator</artifactId>
                 <version>2.2.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>1.2.58.sec06</version>
             </dependency>
             <dependency>
                 <groupId>oro</groupId>
@@ -253,19 +218,19 @@
                 <version>3.6.1</version>
             </dependency>
             <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis-spring</artifactId>
-                <version>2.0.4</version>
+                <groupId>org.apache.ibatis</groupId>
+                <artifactId>ibatis-sqlmap</artifactId>
+                <version>2.3.4.726</version>
             </dependency>
             <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis</artifactId>
-                <version>3.5.4</version>
+                <groupId>com.alibaba.fastsql</groupId>
+                <artifactId>fastsql</artifactId>
+                <version>2.0.0_preview_973</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid</artifactId>
-                <version>1.2.1</version>
+                <version>1.1.9</version>
             </dependency>
             <dependency>
                 <groupId>com.lmax</groupId>
@@ -306,39 +271,25 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>1.6.5</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>1.6.5</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-all</artifactId>
-                <version>1.10.19</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.diffblue</groupId>
-                <artifactId>deeptestutils</artifactId>
-                <version>1.9.0</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.48</version>
+                <version>5.1.47</version>
                 <!--<scope>test</scope>-->
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>3.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-acl</artifactId>
+                <version>${rocketmq_version}</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>

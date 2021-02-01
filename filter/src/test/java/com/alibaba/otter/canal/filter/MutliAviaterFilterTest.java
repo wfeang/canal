@@ -21,19 +21,22 @@ public class MutliAviaterFilterTest {
         final CountDownLatch countDown = new CountDownLatch(count);
         final AtomicInteger successed = new AtomicInteger(0);
         for (int i = 0; i < count; i++) {
-            executor.submit(() -> {
-                try {
-                    for (int i1 = 0; i1 < 100; i1++) {
-                        doRegexTest();
-                        // try {
-                        // Thread.sleep(10);
-                        // } catch (InterruptedException e) {
-                        // }
-                    }
+            executor.submit(new Runnable() {
 
-                    successed.incrementAndGet();
-                } finally {
-                    countDown.countDown();
+                public void run() {
+                    try {
+                        for (int i = 0; i < 100; i++) {
+                            doRegexTest();
+                            // try {
+                            // Thread.sleep(10);
+                            // } catch (InterruptedException e) {
+                            // }
+                        }
+
+                        successed.incrementAndGet();
+                    } finally {
+                        countDown.countDown();
+                    }
                 }
             });
         }

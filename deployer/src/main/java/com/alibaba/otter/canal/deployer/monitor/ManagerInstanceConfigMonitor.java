@@ -15,6 +15,7 @@ import com.alibaba.otter.canal.common.CanalLifeCycle;
 import com.alibaba.otter.canal.common.utils.NamedThreadFactory;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanal;
 import com.alibaba.otter.canal.instance.manager.plain.PlainCanalConfigClient;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.MigrateMap;
@@ -31,7 +32,12 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
     private long                        scanIntervalInSecond = 5;
     private InstanceAction              defaultAction        = null;
     private Map<String, InstanceAction> actions              = new MapMaker().makeMap();
-    private Map<String, PlainCanal>     configs              = MigrateMap.makeComputingMap(destination -> new PlainCanal());
+    private Map<String, PlainCanal>     configs              = MigrateMap.makeComputingMap(new Function<String, PlainCanal>() {
+
+                                                                 public PlainCanal apply(String destination) {
+                                                                     return new PlainCanal();
+                                                                 }
+                                                             });
     private ScheduledExecutorService    executor             = Executors.newScheduledThreadPool(1,
                                                                  new NamedThreadFactory("canal-instance-scan"));
 
@@ -40,15 +46,19 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
     public void start() {
         super.start();
-        executor.scheduleWithFixedDelay(() -> {
-            try {
-                scan();
-                if (isFirst) {
-                    isFirst = false;
+        executor.scheduleWithFixedDelay(new Runnable() {
+
+            public void run() {
+                try {
+                    scan();
+                    if (isFirst) {
+                        isFirst = false;
+                    }
+                } catch (Throwable e) {
+                    logger.error("scan failed", e);
                 }
-            } catch (Throwable e) {
-                logger.error("scan failed", e);
             }
+
         }, 0, scanIntervalInSecond, TimeUnit.SECONDS);
     }
 
@@ -72,10 +82,6 @@ public class ManagerInstanceConfigMonitor extends AbstractCanalLifeCycle impleme
 
     private void scan() {
         String instances = configClient.findInstances(null);
-        if (instances == null) {
-            return;
-        }
-
         final List<String> is = Lists.newArrayList(StringUtils.split(instances, ','));
         List<String> start = Lists.newArrayList();
         List<String> stop = Lists.newArrayList();

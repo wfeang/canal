@@ -28,14 +28,19 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
     private IZkChildListener                 childListener;                                      // 监听所有的服务器列表
     private IZkDataListener                  dataListener;                                       // 监听当前的工作节点
     private ZkClientx                        zkClient;
-    private volatile List<InetSocketAddress> currentAddress = new ArrayList<>();
+    private volatile List<InetSocketAddress> currentAddress = new ArrayList<InetSocketAddress>();
     private volatile InetSocketAddress       runningAddress = null;
 
     public ClusterNodeAccessStrategy(String destination, ZkClientx zkClient){
         this.destination = destination;
         this.zkClient = zkClient;
-        // handleChildChange
-        childListener = (parentPath, currentChilds) -> initClusters(currentChilds);
+        childListener = new IZkChildListener() {
+
+            public void handleChildChange(String parentPath, List<String> currentChilds) throws Exception {
+                initClusters(currentChilds);
+            }
+
+        };
 
         dataListener = new IZkDataListener() {
 
@@ -75,9 +80,9 @@ public class ClusterNodeAccessStrategy implements CanalNodeAccessStrategy {
 
     private void initClusters(List<String> currentChilds) {
         if (currentChilds == null || currentChilds.isEmpty()) {
-            currentAddress = new ArrayList<>();
+            currentAddress = new ArrayList<InetSocketAddress>();
         } else {
-            List<InetSocketAddress> addresses = new ArrayList<>();
+            List<InetSocketAddress> addresses = new ArrayList<InetSocketAddress>();
             for (String address : currentChilds) {
                 String[] strs = StringUtils.split(address, ":");
                 if (strs != null && strs.length == 2) {

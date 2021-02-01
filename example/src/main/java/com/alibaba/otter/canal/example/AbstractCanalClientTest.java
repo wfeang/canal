@@ -25,7 +25,12 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
 
     protected void start() {
         Assert.notNull(connector, "connector is null");
-        thread = new Thread(this::process);
+        thread = new Thread(new Runnable() {
+
+            public void run() {
+                process();
+            }
+        });
 
         thread.setUncaughtExceptionHandler(handler);
         running = true;
@@ -71,17 +76,16 @@ public class AbstractCanalClientTest extends BaseCanalClientTest {
 
                     if (batchId != -1) {
                         connector.ack(batchId); // 提交确认
+                        // connector.rollback(batchId); // 处理失败, 回滚数据
                     }
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logger.error("process error!", e);
                 try {
                     Thread.sleep(1000L);
                 } catch (InterruptedException e1) {
                     // ignore
                 }
-
-                connector.rollback(); // 处理失败, 回滚数据
             } finally {
                 connector.disconnect();
                 MDC.remove("destination");

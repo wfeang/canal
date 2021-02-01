@@ -11,7 +11,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.druid.pool.DruidDataSource;
-
 @Ignore
 public class DBTest {
 
@@ -40,7 +39,8 @@ public class DBTest {
         Connection conn = dataSource.getConnection();
 
         conn.setAutoCommit(false);
-        PreparedStatement pstmt = conn.prepareStatement("insert into user (id,name,role_id,c_time,test1,test2) values (?,?,?,?,?,?)");
+        PreparedStatement pstmt = conn
+            .prepareStatement("insert into user (id,name,role_id,c_time,test1,test2) values (?,?,?,?,?,?)");
 
         java.util.Date now = new java.util.Date();
         for (int i = 1; i <= 10000; i++) {
@@ -67,16 +67,14 @@ public class DBTest {
         // ResultSetMetaData rsm = rs.getMetaData();
         // int cnt = rsm.getColumnCount();
         // for (int i = 1; i <= cnt; i++) {
-        // System.out.println(rsm.getColumnName(i) + " " +
-        // rsm.getColumnType(i));
+        // System.out.println(rsm.getColumnName(i) + " " + rsm.getColumnType(i));
         // }
 
         // rs.close();
         // stmt.close();
 
         // PreparedStatement pstmt = conn
-        // .prepareStatement("insert into tb_user
-        // (id,name,role_id,c_time,test1,test2)
+        // .prepareStatement("insert into tb_user (id,name,role_id,c_time,test1,test2)
         // values (?,?,?,?,?,?)");
         // pstmt.setBigDecimal(1, new BigDecimal("5"));
         // pstmt.setString(2, "test");
@@ -93,7 +91,6 @@ public class DBTest {
         dataSource.close();
     }
 
-    @SuppressWarnings("unused")
     private String clob2Str(Clob clob) {
         String content = "";
         try (Reader is = clob.getCharacterStream(); BufferedReader buff = new BufferedReader(is)) {

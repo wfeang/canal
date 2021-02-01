@@ -13,6 +13,8 @@ import com.alibaba.otter.canal.parse.driver.mysql.packets.CommandPacket;
  */
 public class QuitCommandPacket extends CommandPacket {
 
+    public static final byte[] QUIT = new byte[] { 1, 0, 0, 0, 1 };
+
     public QuitCommandPacket(){
         setCommand((byte) 0x01);
     }
@@ -26,6 +28,7 @@ public class QuitCommandPacket extends CommandPacket {
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(getCommand());
+        out.write(QUIT);
         return out.toByteArray();
     }
 

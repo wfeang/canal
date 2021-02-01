@@ -277,7 +277,7 @@ public class PropertiesConfigurationFactory<T> implements FactoryBean<T>, Applic
     }
 
     private Set<String> getNames(Iterable<String> prefixes) {
-        Set<String> names = new LinkedHashSet<>();
+        Set<String> names = new LinkedHashSet<String>();
         if (this.target != null) {
             PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(this.target.getClass());
             for (PropertyDescriptor descriptor : descriptors) {
@@ -318,7 +318,7 @@ public class PropertiesConfigurationFactory<T> implements FactoryBean<T>, Applic
             // We can filter properties to those starting with the target name, but
             // we can't do a complete filter since we need to trigger the
             // unknown fields check
-            Set<String> relaxedNames = new HashSet<>();
+            Set<String> relaxedNames = new HashSet<String>();
             for (String relaxedTargetName : relaxedTargetNames) {
                 relaxedNames.add(relaxedTargetName);
             }

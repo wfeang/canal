@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -23,7 +24,7 @@ import org.slf4j.MDC;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.druid.sql.repository.Schema;
+import com.alibaba.fastsql.sql.repository.Schema;
 import com.alibaba.otter.canal.filter.CanalEventFilter;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -51,12 +52,16 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private static Logger                   logger              = LoggerFactory.getLogger(DatabaseTableMeta.class);
     private static Pattern                  pattern             = Pattern.compile("Duplicate entry '.*' for key '*'");
     private static Pattern                  h2Pattern           = Pattern.compile("Unique index or primary key violation");
-    private static ScheduledExecutorService scheduler           = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread thread = new Thread(r,
-            "[scheduler-table-meta-snapshot]");
-        thread.setDaemon(true);
-        return thread;
-    });
+    private static ScheduledExecutorService scheduler           = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+
+                                                                    @Override
+                                                                    public Thread newThread(Runnable r) {
+                                                                        Thread thread = new Thread(r,
+                                                                            "[scheduler-table-meta-snapshot]");
+                                                                        thread.setDaemon(true);
+                                                                        return thread;
+                                                                    }
+                                                                });
     private ReadWriteLock                   lock                = new ReentrantReadWriteLock();
     private AtomicBoolean                   initialized         = new AtomicBoolean(false);
     private String                          destination;
@@ -64,8 +69,8 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private volatile MysqlConnection        connection;                                                                    // 查询meta信息的链接
     private CanalEventFilter                filter;
     private CanalEventFilter                blackFilter;
-    private Map<String, List<String>>       fieldFilterMap      = new HashMap<>();
-    private Map<String, List<String>>       fieldBlackFilterMap = new HashMap<>();
+    private Map<String, List<String>>       fieldFilterMap      = new HashMap<String, List<String>>();
+    private Map<String, List<String>>       fieldBlackFilterMap = new HashMap<String, List<String>>();
     private EntryPosition                   lastPosition;
     private boolean                         hasNewDdl;
     private MetaHistoryDAO                  metaHistoryDAO;
@@ -86,22 +91,26 @@ public class DatabaseTableMeta implements TableMetaTSDB {
 
             // 24小时生成一份snapshot
             if (snapshotInterval > 0) {
-                scheduleSnapshotFuture = scheduler.scheduleWithFixedDelay(() -> {
-                    boolean applyResult = false;
-                    try {
-                        MDC.put("destination", destination);
-                        applyResult = applySnapshotToDB(lastPosition, false);
-                    } catch (Throwable e) {
-                        logger.error("scheudle applySnapshotToDB faield", e);
-                    }
+                scheduleSnapshotFuture = scheduler.scheduleWithFixedDelay(new Runnable() {
 
-                    try {
-                        MDC.put("destination", destination);
-                        if (applyResult) {
-                            snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                    @Override
+                    public void run() {
+                        boolean applyResult = false;
+                        try {
+                            MDC.put("destination", destination);
+                            applyResult = applySnapshotToDB(lastPosition, false);
+                        } catch (Throwable e) {
+                            logger.error("scheudle applySnapshotToDB faield", e);
                         }
-                    } catch (Throwable e) {
-                        logger.error("scheudle snapshotExpire faield", e);
+
+                        try {
+                            MDC.put("destination", destination);
+                            if (applyResult) {
+                                snapshotExpire((int) TimeUnit.HOURS.toSeconds(snapshotExpire));
+                            }
+                        } catch (Throwable e) {
+                            logger.error("scheudle snapshotExpire faield", e);
+                        }
                     }
                 }, snapshotInterval, snapshotInterval, TimeUnit.HOURS);
             }
@@ -190,13 +199,15 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     private boolean dumpTableMeta(MysqlConnection connection, final CanalEventFilter filter) {
         try {
             ResultSetPacket packet = connection.query("show databases");
-            List<String> schemas = new ArrayList<>();
-            schemas.addAll(packet.getFieldValues());
+            List<String> schemas = new ArrayList<String>();
+            for (String schema : packet.getFieldValues()) {
+                schemas.add(schema);
+            }
 
             for (String schema : schemas) {
                 // filter views
                 packet = connection.query("show full tables from `" + schema + "` where Table_type = 'BASE TABLE'");
-                List<String> tables = new ArrayList<>();
+                List<String> tables = new ArrayList<String>();
                 for (String table : packet.getFieldValues()) {
                     if ("BASE TABLE".equalsIgnoreCase(table)) {
                         continue;
@@ -234,7 +245,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
     }
 
     private boolean applyHistoryToDB(EntryPosition position, String schema, String ddl, String extra) {
-        Map<String, String> content = new HashMap<>();
+        Map<String, String> content = new HashMap<String, String>();
         content.put("destination", destination);
         content.put("binlogFile", position.getJournalName());
         content.put("binlogOffest", String.valueOf(position.getPosition()));
@@ -315,7 +326,7 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         }
 
         if (compareAll) {
-            Map<String, String> content = new HashMap<>();
+            Map<String, String> content = new HashMap<String, String>();
             content.put("destination", destination);
             content.put("binlogFile", position.getJournalName());
             content.put("binlogOffest", String.valueOf(position.getPosition()));
@@ -654,14 +665,6 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         this.fieldBlackFilterMap = fieldBlackFilterMap;
     }
 
-    public Map<String, List<String>> getFieldFilterMap() {
-        return fieldFilterMap;
-    }
-
-    public Map<String, List<String>> getFieldBlackFilterMap() {
-        return fieldBlackFilterMap;
-    }
-
     public int getSnapshotInterval() {
         return snapshotInterval;
     }
@@ -690,4 +693,8 @@ public class DatabaseTableMeta implements TableMetaTSDB {
         return false;
     }
 
+    public static void main(String[] args) {
+        String str = StringUtils.substringBefore("int(11)", "(");
+        System.out.println(str);
+    }
 }

@@ -63,8 +63,8 @@ public class ProtocolTest {
         messageSize += com.google.protobuf.CodedOutputStream.computeInt64Size(1, message.getId());
 
         int dataSize = 0;
-        for (ByteString rowEntry : rowEntries) {
-            dataSize += CodedOutputStream.computeBytesSizeNoTag(rowEntry);
+        for (int i = 0; i < rowEntries.size(); i++) {
+            dataSize += com.google.protobuf.CodedOutputStream.computeBytesSizeNoTag(rowEntries.get(i));
         }
         messageSize += dataSize;
         messageSize += 1 * rowEntries.size();
@@ -82,8 +82,8 @@ public class ProtocolTest {
         output.writeRawVarint32(messageSize);
         // message
         output.writeInt64(1, message.getId());
-        for (ByteString rowEntry : rowEntries) {
-            output.writeBytes(2, rowEntry);
+        for (int i = 0; i < rowEntries.size(); i++) {
+            output.writeBytes(2, rowEntries.get(i));
         }
         output.checkNoSpaceLeft();
 

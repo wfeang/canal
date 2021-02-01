@@ -109,7 +109,8 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
                 }
                 try {
                     eventStore.put(event);
-                } catch (CanalStoreException | InterruptedException e) {
+                } catch (CanalStoreException e) {
+                } catch (InterruptedException e) {
                 }
             }
         }
@@ -120,7 +121,7 @@ public class MemoryEventStoreMultiThreadTest extends MemoryEventStoreBase {
         private CountDownLatch latch;
         private int            freq;
         private int            batchSize;
-        private List<Long>     result = new ArrayList<>();
+        private List<Long>     result = new ArrayList<Long>();
 
         public Cosumer(CountDownLatch latch, int freq, int batchSize){
             this.latch = latch;

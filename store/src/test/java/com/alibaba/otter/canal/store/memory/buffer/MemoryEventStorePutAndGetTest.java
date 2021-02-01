@@ -64,7 +64,9 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
 
         try {
             result = eventStore.put(buildEvent("1", 1L, 1L + bufferSize), 1000L, TimeUnit.MILLISECONDS);
-        } catch (CanalStoreException | InterruptedException e) {
+        } catch (CanalStoreException e) {
+            Assert.fail(e.getMessage());
+        } catch (InterruptedException e) {
             Assert.fail(e.getMessage());
         }
 
@@ -138,20 +140,24 @@ public class MemoryEventStorePutAndGetTest extends MemoryEventStoreBase {
             Assert.assertTrue(entrys.getEvents().size() == batchSize);
             Assert.assertEquals(position, entrys.getPositionRange().getStart());
             Assert.assertEquals(position, entrys.getPositionRange().getEnd());
-        } catch (CanalStoreException | InterruptedException e) {
+        } catch (CanalStoreException e) {
+        } catch (InterruptedException e) {
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        executor.submit(() -> {
-            boolean result = false;
-            try {
-                eventStore.get(position, batchSize);
-            } catch (CanalStoreException e) {
-            } catch (InterruptedException e) {
-                System.out.println("interrupt occured.");
-                result = true;
+        executor.submit(new Runnable() {
+
+            public void run() {
+                boolean result = false;
+                try {
+                    eventStore.get(position, batchSize);
+                } catch (CanalStoreException e) {
+                } catch (InterruptedException e) {
+                    System.out.println("interrupt occured.");
+                    result = true;
+                }
+                Assert.assertTrue(result);
             }
-            Assert.assertTrue(result);
         });
 
         try {

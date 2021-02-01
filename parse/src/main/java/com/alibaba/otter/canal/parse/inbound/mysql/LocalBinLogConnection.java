@@ -81,9 +81,10 @@ public class LocalBinLogConnection implements ErosaConnection {
     public void dump(String binlogfilename, Long binlogPosition, SinkFunction func) throws IOException {
         File current = new File(directory, binlogfilename);
 
-        try (FileLogFetcher fetcher = new FileLogFetcher(bufferSize)) {
-            LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
-            LogContext context = new LogContext();
+        FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
+        LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
+        LogContext context = new LogContext();
+        try {
             fetcher.open(current, binlogPosition);
             context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
             while (running) {
@@ -128,6 +129,10 @@ public class LocalBinLogConnection implements ErosaConnection {
             }
         } catch (InterruptedException e) {
             logger.warn("LocalBinLogConnection dump interrupted");
+        } finally {
+            if (fetcher != null) {
+                fetcher.close();
+            }
         }
     }
 
@@ -221,9 +226,10 @@ public class LocalBinLogConnection implements ErosaConnection {
             throw new CanalParseException("binlog:" + binlogfilename + " is not found");
         }
 
-        try (FileLogFetcher fetcher = new FileLogFetcher(bufferSize)) {
-            LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
-            LogContext context = new LogContext();
+        FileLogFetcher fetcher = new FileLogFetcher(bufferSize);
+        LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
+        LogContext context = new LogContext();
+        try {
             fetcher.open(current, binlogPosition);
             context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
             while (running) {
@@ -267,6 +273,10 @@ public class LocalBinLogConnection implements ErosaConnection {
             }
         } catch (InterruptedException e) {
             logger.warn("LocalBinLogConnection dump interrupted");
+        } finally {
+            if (fetcher != null) {
+                fetcher.close();
+            }
         }
     }
 

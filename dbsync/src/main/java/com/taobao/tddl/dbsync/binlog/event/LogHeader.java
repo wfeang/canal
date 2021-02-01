@@ -316,11 +316,10 @@ public final class LogHeader {
         return gtidMap.get(CURRENT_GTID_LAST_COMMIT);
     }
 
-    public void putGtid(GTIDSet gtidSet, LogEvent gtidEvent) {
+    public void putGtid(GTIDSet gtidSet, GtidLogEvent event) {
         if (gtidSet != null) {
             gtidMap.put(GTID_SET_STRING, gtidSet.toString());
-            if (gtidEvent != null && gtidEvent instanceof GtidLogEvent) {
-                GtidLogEvent event = (GtidLogEvent)gtidEvent;
+            if (event != null) {
                 gtidMap.put(CURRENT_GTID_STRING, event.getGtidStr());
                 gtidMap.put(CURRENT_GTID_SN, String.valueOf(event.getSequenceNumber()));
                 gtidMap.put(CURRENT_GTID_LAST_COMMIT, String.valueOf(event.getLastCommitted()));

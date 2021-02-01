@@ -90,7 +90,7 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
                                                                                             throws InterruptedException {
         boolean hasRowData = false;
         boolean hasHeartBeat = false;
-        List<Event> events = new ArrayList<>();
+        List<Event> events = new ArrayList<Event>();
         for (CanalEntry.Entry entry : entrys) {
             if (!doFilter(entry)) {
                 continue;
@@ -104,12 +104,8 @@ public class EntryEventSink extends AbstractCanalEventSink<List<CanalEntry.Entry
                     && Math.abs(currentTimestamp - lastTransactionTimestamp) <= emptyTransactionInterval) {
                     continue;
                 } else {
-                    // fixed issue https://github.com/alibaba/canal/issues/2616
-                    // 主要原因在于空事务只发送了begin，没有同步发送commit信息，这里修改为只对commit事件做计数更新，确保begin/commit成对出现
-                    if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
-                        lastTransactionCount.set(0L);
-                        lastTransactionTimestamp = currentTimestamp;
-                    }
+                    lastTransactionCount.set(0L);
+                    lastTransactionTimestamp = currentTimestamp;
                 }
             }
 

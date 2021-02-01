@@ -3,7 +3,6 @@ package com.alibaba.otter.canal.adapter.launcher.config;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -25,7 +24,7 @@ public class CuratorClient {
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotEmpty(adapterCanalConfig.getZookeeperHosts())) {
+        if (adapterCanalConfig.getZookeeperHosts() != null) {
             curator = CuratorFrameworkFactory.builder()
                 .connectString(adapterCanalConfig.getZookeeperHosts())
                 .retryPolicy(new ExponentialBackoffRetry(1000, 3))

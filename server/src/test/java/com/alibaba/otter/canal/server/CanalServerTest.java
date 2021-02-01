@@ -11,6 +11,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.alibaba.otter.canal.instance.core.CanalInstance;
+import com.alibaba.otter.canal.instance.core.CanalInstanceGenerator;
 import com.alibaba.otter.canal.instance.manager.CanalInstanceWithManager;
 import com.alibaba.otter.canal.instance.manager.model.Canal;
 import com.alibaba.otter.canal.instance.manager.model.CanalParameter;
@@ -51,9 +53,12 @@ public class CanalServerTest {
     @Before
     public void setUp() {
         CanalServerWithEmbedded embeddedServer = new CanalServerWithEmbedded();
-        embeddedServer.setCanalInstanceGenerator(destination -> {
-            Canal canal = buildCanal();
-            return new CanalInstanceWithManager(canal, FILTER);
+        embeddedServer.setCanalInstanceGenerator(new CanalInstanceGenerator() {
+
+            public CanalInstance generate(String destination) {
+                Canal canal = buildCanal();
+                return new CanalInstanceWithManager(canal, FILTER);
+            }
         });
 
         nettyServer = CanalServerWithNetty.instance();

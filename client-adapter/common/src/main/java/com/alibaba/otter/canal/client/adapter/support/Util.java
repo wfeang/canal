@@ -16,6 +16,7 @@ import java.util.function.Function;
 
 import javax.sql.DataSource;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -36,7 +37,9 @@ public class Util {
     public static Object sqlRS(DataSource ds, String sql, Function<ResultSet, Object> fun) {
         try (Connection conn = ds.getConnection();
                 Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-            stmt.setFetchSize(Integer.MIN_VALUE);
+            if (((DruidDataSource) ds).getDbType() != "postgresql") {
+                stmt.setFetchSize(Integer.MIN_VALUE);
+            }
             try (ResultSet rs = stmt.executeQuery(sql)) {
                 return fun.apply(rs);
             }
@@ -159,43 +162,6 @@ public class Util {
                     }
                 }
             });
-    }
-
-    public static ThreadPoolExecutor newFixedDaemonThreadPool(int nThreads, long keepAliveTime) {
-        return new ThreadPoolExecutor(nThreads,
-                nThreads,
-                keepAliveTime,
-                TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(),
-                DaemonThreadFactory.daemonThreadFactory,
-                (r, exe) -> {
-                    if (!exe.isShutdown()) {
-                        try {
-                            exe.getQueue().put(r);
-                        } catch (InterruptedException e) {
-                            // ignore
-                        }
-                    }
-                }
-        );
-    }
-
-    public static ThreadPoolExecutor newSingleDaemonThreadExecutor(long keepAliveTime) {
-        return new ThreadPoolExecutor(1,
-                1,
-                keepAliveTime,
-                TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(),
-                DaemonThreadFactory.daemonThreadFactory,
-                (r, exe) -> {
-                    if (!exe.isShutdown()) {
-                        try {
-                            exe.getQueue().put(r);
-                        } catch (InterruptedException e) {
-                            // ignore
-                        }
-                    }
-                });
     }
 
     public final static String  timeZone;    // 当前时区

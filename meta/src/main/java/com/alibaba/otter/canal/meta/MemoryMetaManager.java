@@ -11,6 +11,7 @@ import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.protocol.ClientIdentity;
 import com.alibaba.otter.canal.protocol.position.Position;
 import com.alibaba.otter.canal.protocol.position.PositionRange;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
@@ -31,11 +32,22 @@ public class MemoryMetaManager extends AbstractCanalLifeCycle implements CanalMe
     public void start() {
         super.start();
 
-        batches = MigrateMap.makeComputingMap(MemoryClientIdentityBatch::create);
+        batches = MigrateMap.makeComputingMap(new Function<ClientIdentity, MemoryClientIdentityBatch>() {
+
+            public MemoryClientIdentityBatch apply(ClientIdentity clientIdentity) {
+                return MemoryClientIdentityBatch.create(clientIdentity);
+            }
+
+        });
 
         cursors = new MapMaker().makeMap();
 
-        destinations = MigrateMap.makeComputingMap(destination -> Lists.newArrayList());
+        destinations = MigrateMap.makeComputingMap(new Function<String, List<ClientIdentity>>() {
+
+            public List<ClientIdentity> apply(String destination) {
+                return Lists.newArrayList();
+            }
+        });
     }
 
     public void stop() {

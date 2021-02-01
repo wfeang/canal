@@ -23,7 +23,14 @@ public class PropertyPlaceholderConfigurer extends org.springframework.beans.fac
 
     private static final String           PLACEHOLDER_PREFIX = "${";
     private static final String           PLACEHOLDER_SUFFIX = "}";
-    public static ThreadLocal<Properties> propertiesLocal    = ThreadLocal.withInitial(Properties::new);
+    public static ThreadLocal<Properties> propertiesLocal    = new ThreadLocal<Properties>() {
+
+                                                                 @Override
+                                                                 protected Properties initialValue() {
+                                                                     return new Properties();
+                                                                 }
+
+                                                             };
 
     private ResourceLoader                loader;
     private String[]                      locationNames;
@@ -50,7 +57,7 @@ public class PropertyPlaceholderConfigurer extends org.springframework.beans.fac
         }
 
         if (locationNames != null) {
-            List<Resource> resources = new ArrayList<>(locationNames.length);
+            List<Resource> resources = new ArrayList<Resource>(locationNames.length);
 
             for (String location : locationNames) {
                 location = trimToNull(location);

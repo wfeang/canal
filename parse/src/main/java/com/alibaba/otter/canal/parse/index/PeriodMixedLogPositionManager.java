@@ -50,7 +50,7 @@ public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
         this.memoryLogPositionManager = memoryLogPositionManager;
         this.zooKeeperLogPositionManager = zooKeeperLogPositionManager;
         this.period = period;
-        this.persistTasks = Collections.synchronizedSet(new HashSet<>());
+        this.persistTasks = Collections.synchronizedSet(new HashSet<String>());
         this.executorService = Executors.newScheduledThreadPool(1);
     }
 
@@ -82,16 +82,19 @@ public class PeriodMixedLogPositionManager extends AbstractLogPositionManager {
         }
 
         // 启动定时工作任务
-        executorService.scheduleAtFixedRate(() -> {
-            List<String> tasks = new ArrayList<>(persistTasks);
-            for (String destination : tasks) {
-                try {
-                    // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次
-                    zooKeeperLogPositionManager.persistLogPosition(destination, getLatestIndexBy(destination));
-                    persistTasks.remove(destination);
-                } catch (Throwable e) {
-                    // ignore
-                    logger.error("period update" + destination + " curosr failed!", e);
+        executorService.scheduleAtFixedRate(new Runnable() {
+
+            public void run() {
+                List<String> tasks = new ArrayList<String>(persistTasks);
+                for (String destination : tasks) {
+                    try {
+                        // 定时将内存中的最新值刷到zookeeper中，多次变更只刷一次
+                        zooKeeperLogPositionManager.persistLogPosition(destination, getLatestIndexBy(destination));
+                        persistTasks.remove(destination);
+                    } catch (Throwable e) {
+                        // ignore
+                        logger.error("period update" + destination + " curosr failed!", e);
+                    }
                 }
             }
         }, period, period, TimeUnit.MILLISECONDS);

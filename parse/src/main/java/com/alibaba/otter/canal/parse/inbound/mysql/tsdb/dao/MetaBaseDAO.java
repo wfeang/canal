@@ -9,14 +9,14 @@ import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.mybatis.spring.support.SqlSessionDaoSupport;
+import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 
 /**
  * @author agapple 2017年10月14日 上午1:05:22
  * @since 1.0.25
  */
 @SuppressWarnings("deprecation")
-public class MetaBaseDAO extends SqlSessionDaoSupport {
+public class MetaBaseDAO extends SqlMapClientDaoSupport {
 
     protected boolean isH2 = false;
 
@@ -24,7 +24,7 @@ public class MetaBaseDAO extends SqlSessionDaoSupport {
         Connection conn = null;
         InputStream input = null;
         try {
-            DataSource dataSource = getSqlSessionFactory().getConfiguration().getEnvironment().getDataSource();
+            DataSource dataSource = getDataSource();
             conn = dataSource.getConnection();
             String name = "mysql";
             isH2 = isH2(conn);

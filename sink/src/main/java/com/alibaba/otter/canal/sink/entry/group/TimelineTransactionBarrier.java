@@ -16,7 +16,12 @@ import com.alibaba.otter.canal.store.model.Event;
  */
 public class TimelineTransactionBarrier extends TimelineBarrier {
 
-    private ThreadLocal<Boolean> inTransaction = ThreadLocal.withInitial(() -> false);
+    private ThreadLocal<Boolean> inTransaction = new ThreadLocal() {
+
+                                                   protected Object initialValue() {
+                                                       return false;
+                                                   }
+                                               };
 
     /**
      * <pre>

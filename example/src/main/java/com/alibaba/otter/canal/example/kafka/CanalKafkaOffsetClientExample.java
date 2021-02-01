@@ -35,7 +35,12 @@ public class CanalKafkaOffsetClientExample {
 
     private Thread                          thread  = null;
 
-    private Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("parse events has an error", e);
+    private Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+
+                                                        public void uncaughtException(Thread t, Throwable e) {
+                                                            logger.error("parse events has an error", e);
+                                                        }
+                                                    };
 
     public CanalKafkaOffsetClientExample(String servers, String topic, Integer partition, String groupId){
         connector = new KafkaOffsetCanalConnector(servers, topic, partition, groupId, false);
@@ -50,16 +55,20 @@ public class CanalKafkaOffsetClientExample {
             logger.info("## start the kafka consumer: {}-{}", AbstractKafkaTest.topic, AbstractKafkaTest.groupId);
             kafkaCanalClientExample.start();
             logger.info("## the canal kafka consumer is running now ......");
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    logger.info("## stop the kafka consumer");
-                    kafkaCanalClientExample.stop();
-                } catch (Throwable e) {
-                    logger.warn("##something goes wrong when stopping kafka consumer:", e);
-                } finally {
-                    logger.info("## kafka consumer is down.");
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+
+                public void run() {
+                    try {
+                        logger.info("## stop the kafka consumer");
+                        kafkaCanalClientExample.stop();
+                    } catch (Throwable e) {
+                        logger.warn("##something goes wrong when stopping kafka consumer:", e);
+                    } finally {
+                        logger.info("## kafka consumer is down.");
+                    }
                 }
-            }));
+
+            });
             while (running)
                 ;
         } catch (Throwable e) {
@@ -70,7 +79,12 @@ public class CanalKafkaOffsetClientExample {
 
     public void start() {
         Assert.notNull(connector, "connector is null");
-        thread = new Thread(this::process);
+        thread = new Thread(new Runnable() {
+
+            public void run() {
+                process();
+            }
+        });
         thread.setUncaughtExceptionHandler(handler);
         thread.start();
         running = true;

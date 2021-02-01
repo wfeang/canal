@@ -1,10 +1,6 @@
 package com.alibaba.otter.canal.client.adapter.rdb.service;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -105,17 +101,17 @@ public class RdbEtlService extends AbstractEtlService {
                             pstmt.clearParameters();
 
                             // 删除数据
-                            Map<String, Object> pkVal = new LinkedHashMap<>();
-                            StringBuilder deleteSql = new StringBuilder(
-                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
-                            appendCondition(dbMapping, deleteSql, pkVal, rs);
-                            try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
-                                int k = 1;
-                                for (Object val : pkVal.values()) {
-                                    pstmt2.setObject(k++, val);
-                                }
-                                pstmt2.execute();
-                            }
+//                            Map<String, Object> pkVal = new LinkedHashMap<>();
+//                            StringBuilder deleteSql = new StringBuilder(
+//                                "DELETE FROM " + SyncUtil.getDbTableName(dbMapping) + " WHERE ");
+//                            appendCondition(dbMapping, deleteSql, pkVal, rs);
+//                            try (PreparedStatement pstmt2 = connTarget.prepareStatement(deleteSql.toString())) {
+//                                int k = 1;
+//                                for (Object val : pkVal.values()) {
+//                                    pstmt2.setObject(k++, val);
+//                                }
+//                                pstmt2.execute();
+//                            }
 
                             int i = 1;
                             for (Map.Entry<String, String> entry : columnsMap.entrySet()) {
@@ -173,7 +169,7 @@ public class RdbEtlService extends AbstractEtlService {
     /**
      * 拼接目标表主键where条件
      */
-    private static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
+    protected static void appendCondition(DbMapping dbMapping, StringBuilder sql, Map<String, Object> values,
                                         ResultSet rs) throws SQLException {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {

@@ -13,6 +13,7 @@ import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.exception.PositionNotFoundException;
 import com.alibaba.otter.canal.parse.exception.ServerIdNotMatchException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
+import com.alibaba.otter.canal.parse.inbound.ParserExceptionHandler;
 import com.alibaba.otter.canal.parse.inbound.mysql.LocalBinLogConnection;
 import com.alibaba.otter.canal.parse.inbound.mysql.LocalBinlogEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.rds.data.BinlogFile;
@@ -81,7 +82,13 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             logger.error("download binlog failed", e);
             throw new CanalParseException(e);
         }
-        setParserExceptionHandler(this::handleMysqlParserException);
+        setParserExceptionHandler(new ParserExceptionHandler() {
+
+            @Override
+            public void handle(Throwable e) {
+                handleMysqlParserException(e);
+            }
+        });
         super.start();
     }
 
@@ -98,9 +105,13 @@ public class RdsLocalBinlogEventParser extends LocalBinlogEventParser implements
             }
 
             try {
-                binlogDownloadQueue.execute(() -> {
-                    RdsLocalBinlogEventParser.super.stop();
-                    RdsLocalBinlogEventParser.super.start();
+                binlogDownloadQueue.execute(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        RdsLocalBinlogEventParser.super.stop();
+                        RdsLocalBinlogEventParser.super.start();
+                    }
                 });
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

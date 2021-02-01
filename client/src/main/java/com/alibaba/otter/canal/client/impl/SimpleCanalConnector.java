@@ -64,7 +64,7 @@ public class SimpleCanalConnector implements CanalConnector {
     private SocketChannel        channel;
     private ReadableByteChannel  readableChannel;
     private WritableByteChannel  writableChannel;
-    private List<Compression>    supportedCompressions = new ArrayList<>();
+    private List<Compression>    supportedCompressions = new ArrayList<Compression>();
     private ClientIdentity       clientIdentity;
     private ClientRunningMonitor runningMonitor;                                                             // 运行控制
     private ZkClientx            zkClientx;

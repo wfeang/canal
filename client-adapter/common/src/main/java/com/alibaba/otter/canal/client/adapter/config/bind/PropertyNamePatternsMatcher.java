@@ -9,9 +9,23 @@ package com.alibaba.otter.canal.client.adapter.config.bind;
  */
 interface PropertyNamePatternsMatcher {
 
-    PropertyNamePatternsMatcher ALL  = propertyName -> true;
+    PropertyNamePatternsMatcher ALL  = new PropertyNamePatternsMatcher() {
 
-    PropertyNamePatternsMatcher NONE = propertyName -> false;
+                                         @Override
+                                         public boolean matches(String propertyName) {
+                                             return true;
+                                         }
+
+                                     };
+
+    PropertyNamePatternsMatcher NONE = new PropertyNamePatternsMatcher() {
+
+                                         @Override
+                                         public boolean matches(String propertyName) {
+                                             return false;
+                                         }
+
+                                     };
 
     /**
      * Return {@code true} of the property name matches.

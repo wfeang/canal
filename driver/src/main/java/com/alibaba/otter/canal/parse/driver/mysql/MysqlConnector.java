@@ -49,8 +49,6 @@ public class MysqlConnector {
     // mysql connectinnId
     private long                connectionId      = -1;
     private AtomicBoolean       connected         = new AtomicBoolean(false);
-    // serverVersion
-    private String              serverVersion;
 
     public static final int     timeout           = 5 * 1000;                                     // 5s
 
@@ -181,7 +179,6 @@ public class MysqlConnector {
         }
 
         connectionId = handshakePacket.threadId; // 记录一下connection
-        serverVersion = handshakePacket.serverVersion; // 记录serverVersion
         logger.info("handshake initialization packet received, prepare the client authentication packet to send");
         ClientAuthenticationPacket clientAuth = new ClientAuthenticationPacket();
         clientAuth.setCharsetNumber(charsetNumber);
@@ -413,10 +410,6 @@ public class MysqlConnector {
 
     public String getPassword() {
         return password;
-    }
-
-    public String getServerVersion() {
-        return serverVersion;
     }
 
 }

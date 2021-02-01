@@ -21,6 +21,7 @@ import com.alibaba.otter.canal.common.utils.JsonUtils;
 import com.alibaba.otter.canal.meta.exception.CanalMetaManagerException;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import com.google.common.base.Function;
 import com.google.common.collect.MigrateMap;
 
 /**
@@ -67,10 +68,15 @@ public class FileMixedLogPositionManager extends AbstractLogPositionManager {
         this.period = period;
         this.memoryLogPositionManager = memoryLogPositionManager;
 
-        this.dataFileCaches = MigrateMap.makeComputingMap(this::getDataFile);
+        this.dataFileCaches = MigrateMap.makeComputingMap(new Function<String, File>() {
+
+            public File apply(String destination) {
+                return getDataFile(destination);
+            }
+        });
 
         this.executorService = Executors.newScheduledThreadPool(1);
-        this.persistTasks = Collections.synchronizedSet(new HashSet<>());
+        this.persistTasks = Collections.synchronizedSet(new HashSet<String>());
     }
 
     @Override
@@ -94,16 +100,19 @@ public class FileMixedLogPositionManager extends AbstractLogPositionManager {
         }
 
         // 启动定时工作任务
-        executorService.scheduleAtFixedRate(() -> {
-            List<String> tasks = new ArrayList<>(persistTasks);
-            for (String destination : tasks) {
-                try {
-                    // 定时将内存中的最新值刷到file中，多次变更只刷一次
-                    flushDataToFile(destination);
-                    persistTasks.remove(destination);
-                } catch (Throwable e) {
-                    // ignore
-                    logger.error("period update" + destination + " curosr failed!", e);
+        executorService.scheduleAtFixedRate(new Runnable() {
+
+            public void run() {
+                List<String> tasks = new ArrayList<String>(persistTasks);
+                for (String destination : tasks) {
+                    try {
+                        // 定时将内存中的最新值刷到file中，多次变更只刷一次
+                        flushDataToFile(destination);
+                        persistTasks.remove(destination);
+                    } catch (Throwable e) {
+                        // ignore
+                        logger.error("period update" + destination + " curosr failed!", e);
+                    }
                 }
             }
         }, period, period, TimeUnit.MILLISECONDS);

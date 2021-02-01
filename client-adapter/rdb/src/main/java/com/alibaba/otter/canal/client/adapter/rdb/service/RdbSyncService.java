@@ -45,7 +45,7 @@ public class RdbSyncService {
     private Map<String, Map<String, Integer>> columnsTypeCache;
 
     private int                               threads = 3;
-    private boolean                           skipDupException;
+    protected boolean                           skipDupException;
 
     private List<SyncItem>[]                  dmlsPartition;
     private BatchExecutor[]                   batchExecutors;
@@ -119,7 +119,6 @@ public class RdbSyncService {
                             batchExecutors[j].commit();
                             return true;
                         } catch (Throwable e) {
-                            dmlsPartition[j].clear();
                             batchExecutors[j].rollback();
                             throw new RuntimeException(e);
                         }
@@ -177,9 +176,8 @@ public class RdbSyncService {
             }
 
             for (MappingConfig config : configMap.values()) {
-                boolean caseInsensitive = config.getDbMapping().isCaseInsensitive();
                 if (config.getConcurrent()) {
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
                     singleDmls.forEach(singleDml -> {
                         int hash = pkHash(config.getDbMapping(), singleDml.getData());
                         SyncItem syncItem = new SyncItem(config, singleDml);
@@ -187,7 +185,7 @@ public class RdbSyncService {
                     });
                 } else {
                     int hash = 0;
-                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml, caseInsensitive);
+                    List<SingleDml> singleDmls = SingleDml.dml2SingleDmls(dml);
                     singleDmls.forEach(singleDml -> {
                         SyncItem syncItem = new SyncItem(config, singleDml);
                         dmlsPartition[hash].add(syncItem);
@@ -247,10 +245,7 @@ public class RdbSyncService {
         StringBuilder insertSql = new StringBuilder();
         insertSql.append("INSERT INTO ").append(SyncUtil.getDbTableName(dbMapping)).append(" (");
 
-        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append("`")
-            .append(targetColumnName)
-            .append("`")
-            .append(","));
+        columnsMap.forEach((targetColumnName, srcColumnName) -> insertSql.append(targetColumnName).append(","));
         int len = insertSql.length();
         insertSql.delete(len - 1, len).append(") VALUES (");
         int mapLen = columnsMap.size();
@@ -332,7 +327,7 @@ public class RdbSyncService {
             if (!targetColumnNames.isEmpty()) {
                 hasMatched = true;
                 for (String targetColumnName : targetColumnNames) {
-                    updateSql.append("`").append(targetColumnName).append("`").append("=?, ");
+                    updateSql.append(targetColumnName).append("=?, ");
                     Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
                     if (type == null) {
                         throw new RuntimeException("Target column: " + targetColumnName + " not matched");
@@ -406,7 +401,7 @@ public class RdbSyncService {
      * @param config 映射配置
      * @return 字段sqlType
      */
-    private Map<String, Integer> getTargetColumnType(Connection conn, MappingConfig config) {
+    protected Map<String, Integer> getTargetColumnType(Connection conn, MappingConfig config) {
         DbMapping dbMapping = config.getDbMapping();
         String cacheKey = config.getDestination() + "." + dbMapping.getDatabase() + "." + dbMapping.getTable();
         Map<String, Integer> columnType = columnsTypeCache.get(cacheKey);
@@ -438,12 +433,12 @@ public class RdbSyncService {
     /**
      * 拼接主键 where条件
      */
-    private void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
+    protected void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                  List<Map<String, ?>> values, Map<String, Object> d) {
         appendCondition(dbMapping, sql, ctype, values, d, null);
     }
 
-    private void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
+    protected void appendCondition(MappingConfig.DbMapping dbMapping, StringBuilder sql, Map<String, Integer> ctype,
                                  List<Map<String, ?>> values, Map<String, Object> d, Map<String, Object> o) {
         // 拼接主键
         for (Map.Entry<String, String> entry : dbMapping.getTargetPk().entrySet()) {
@@ -452,7 +447,7 @@ public class RdbSyncService {
             if (srcColumnName == null) {
                 srcColumnName = Util.cleanColumn(targetColumnName);
             }
-            sql.append("`").append(targetColumnName).append("`").append("=? AND ");
+            sql.append(targetColumnName).append("=? AND ");
             Integer type = ctype.get(Util.cleanColumn(targetColumnName).toLowerCase());
             if (type == null) {
                 throw new RuntimeException("Target column: " + targetColumnName + " not matched");

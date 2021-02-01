@@ -13,6 +13,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
+import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializeWriter;
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -71,11 +72,20 @@ public class JsonUtils {
      */
     public static String marshalToString(Object obj, String... fliterFields) {
         final List<String> propertyFliters = Arrays.asList(fliterFields);
-        try (SerializeWriter out = new SerializeWriter()) {
+        SerializeWriter out = new SerializeWriter();
+        try {
             JSONSerializer serializer = new JSONSerializer(out);
-            serializer.getPropertyFilters().add((source, name, value) -> !propertyFliters.contains(name));
+            serializer.getPropertyFilters().add(new PropertyFilter() {
+
+                public boolean apply(Object source, String name, Object value) {
+                    return !propertyFliters.contains(name);
+                }
+
+            });
             serializer.write(obj);
             return out.toString();
+        } finally {
+            out.close();
         }
     }
 

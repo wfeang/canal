@@ -32,7 +32,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  */
 public class BooleanMutex {
 
-    private final Sync sync;
+    private Sync sync;
 
     public BooleanMutex(){
         sync = new Sync();
@@ -47,7 +47,7 @@ public class BooleanMutex {
     /**
      * 阻塞等待Boolean为true
      * 
-     * @throws InterruptedException if the current thread is interrupted
+     * @throws InterruptedException
      */
     public void get() throws InterruptedException {
         sync.innerGet();
@@ -86,7 +86,7 @@ public class BooleanMutex {
      * Synchronization control for BooleanMutex. Uses AQS sync state to
      * represent run status
      */
-    private static final class Sync extends AbstractQueuedSynchronizer {
+    private final class Sync extends AbstractQueuedSynchronizer {
 
         private static final long serialVersionUID = 2559471934544126329L;
         /** State value representing that TRUE */

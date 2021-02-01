@@ -3,6 +3,8 @@ package com.alibaba.otter.canal.admin.handler;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -61,42 +63,46 @@ public class ClientAuthenticationHandler extends SimpleChannelHandler {
                 }
 
                 byte[] ackBytes = AdminNettyUtils.ackPacket();
-                AdminNettyUtils.write(ctx.getChannel(), ackBytes, future -> {
-                    logger.info("remove unused channel handlers after authentication is done successfully.");
-                    ctx.getPipeline().remove(HandshakeInitializationHandler.class.getName());
-                    ctx.getPipeline().remove(ClientAuthenticationHandler.class.getName());
+                AdminNettyUtils.write(ctx.getChannel(), ackBytes, new ChannelFutureListener() {
 
-                    int readTimeout = defaultSubscriptorDisconnectIdleTimeout;
-                    int writeTimeout = defaultSubscriptorDisconnectIdleTimeout;
-                    if (clientAuth.getNetReadTimeout() > 0) {
-                        readTimeout = clientAuth.getNetReadTimeout();
-                    }
-                    if (clientAuth.getNetWriteTimeout() > 0) {
-                        writeTimeout = clientAuth.getNetWriteTimeout();
-                    }
-                    // fix bug: soTimeout parameter's unit from connector is
-                    // millseconds.
-                    IdleStateHandler idleStateHandler = new IdleStateHandler(NettyUtils.hashedWheelTimer,
-                        readTimeout,
-                        writeTimeout,
-                        0,
-                        TimeUnit.MILLISECONDS);
-                    ctx.getPipeline().addBefore(SessionHandler.class.getName(),
-                        IdleStateHandler.class.getName(),
-                        idleStateHandler);
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        logger.info("remove unused channel handlers after authentication is done successfully.");
+                        ctx.getPipeline().remove(HandshakeInitializationHandler.class.getName());
+                        ctx.getPipeline().remove(ClientAuthenticationHandler.class.getName());
 
-                    IdleStateAwareChannelHandler idleStateAwareChannelHandler = new IdleStateAwareChannelHandler() {
-
-                        public void channelIdle(ChannelHandlerContext ctx1, IdleStateEvent e1) throws Exception {
-                            logger.warn("channel:{} idle timeout exceeds, close channel to save server resources...",
-                                ctx1.getChannel());
-                            ctx1.getChannel().close();
+                        int readTimeout = defaultSubscriptorDisconnectIdleTimeout;
+                        int writeTimeout = defaultSubscriptorDisconnectIdleTimeout;
+                        if (clientAuth.getNetReadTimeout() > 0) {
+                            readTimeout = clientAuth.getNetReadTimeout();
                         }
+                        if (clientAuth.getNetWriteTimeout() > 0) {
+                            writeTimeout = clientAuth.getNetWriteTimeout();
+                        }
+                        // fix bug: soTimeout parameter's unit from connector is
+                        // millseconds.
+                        IdleStateHandler idleStateHandler = new IdleStateHandler(NettyUtils.hashedWheelTimer,
+                            readTimeout,
+                            writeTimeout,
+                            0,
+                            TimeUnit.MILLISECONDS);
+                        ctx.getPipeline().addBefore(SessionHandler.class.getName(),
+                            IdleStateHandler.class.getName(),
+                            idleStateHandler);
 
-                    };
-                    ctx.getPipeline().addBefore(SessionHandler.class.getName(),
-                        IdleStateAwareChannelHandler.class.getName(),
-                        idleStateAwareChannelHandler);
+                        IdleStateAwareChannelHandler idleStateAwareChannelHandler = new IdleStateAwareChannelHandler() {
+
+                            public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) throws Exception {
+                                logger.warn("channel:{} idle timeout exceeds, close channel to save server resources...",
+                                    ctx.getChannel());
+                                ctx.getChannel().close();
+                            }
+
+                        };
+                        ctx.getPipeline().addBefore(SessionHandler.class.getName(),
+                            IdleStateAwareChannelHandler.class.getName(),
+                            idleStateAwareChannelHandler);
+                    }
+
                 });
                 break;
         }

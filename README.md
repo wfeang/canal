@@ -5,13 +5,11 @@
 [![average time to resolve an issue](http://isitmaintained.com/badge/resolution/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "average time to resolve an issue")
 [![percentage of issues still open](http://isitmaintained.com/badge/open/alibaba/canal.svg)](http://isitmaintained.com/project/alibaba/canal "percentage of issues still open")
 
-## 简介
+## 背景
 
-![](https://img-blog.csdnimg.cn/20191104101735947.png)
+早期，阿里巴巴 B2B 公司因为存在杭州和美国双机房部署，存在跨机房同步的业务需求 ，主要是基于trigger的方式获取增量变更。从 2010 年开始，公司开始逐步尝试数据库日志解析，获取增量变更进行同步，由此衍生出了增量订阅和消费业务，从此开启一段新纪元。
 
-**canal [kə'næl]**，译意为水道/管道/沟渠，主要用途是基于 MySQL 数据库增量日志解析，提供增量数据订阅和消费
-
-早期阿里巴巴因为杭州和美国双机房部署，存在跨机房同步的业务需求，实现方式主要是基于业务 trigger 获取增量变更。从 2010 年开始，业务逐步尝试数据库日志解析获取增量变更进行同步，由此衍生出了大量的数据库增量订阅和消费业务。
+当前的 canal 支持源端 MySQL 版本包括 5.1.x , 5.5.x , 5.6.x , 5.7.x , 8.0.x
 
 基于日志增量订阅和消费的业务包括
 - 数据库镜像
@@ -20,7 +18,12 @@
 - 业务 cache 刷新
 - 带业务逻辑的增量数据处理
 
-当前的 canal 支持源端 MySQL 版本包括 5.1.x , 5.5.x , 5.6.x , 5.7.x , 8.0.x
+## 项目介绍
+
+#### 名称：canal [kə'næl]
+#### 译意： 水道/管道/沟渠
+#### 产品定位： 基于数据库增量日志解析，提供增量数据订阅和消费
+#### 关键词： MySQL binlog parser / real-time / queue&topic / index build
 
 ## 工作原理
 
@@ -32,6 +35,7 @@
 - MySQL slave 重放 relay log 中事件，将数据变更反映它自己的数据
 
 #### canal 工作原理
+![](http://dl.iteye.com/upload/attachment/0080/3107/c87b67ba-394c-3086-9577-9db05be04c95.jpg)
 
 - canal 模拟 MySQL slave 的交互协议，伪装自己为 MySQL slave ，向 MySQL master 发送dump 协议
 - MySQL master 收到 dump 请求，开始推送 binary log 给 slave (即 canal )
@@ -39,15 +43,13 @@
 
 ## 重要版本更新说明
 
-1. canal 1.1.x 版本（[release_note](https://github.com/alibaba/canal/releases)）,性能与功能层面有较大的突破,重要提升包括:
+canal 1.1.x 版本（[release_note](https://github.com/alibaba/canal/releases)）,性能与功能层面有较大的突破,重要提升包括:
 
 - 整体性能测试&优化,提升了150%. #726 参考: [Performance](https://github.com/alibaba/canal/wiki/Performance)
 - 原生支持prometheus监控 #765 [Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)
 - 原生支持kafka消息投递 #695 [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
 - 原生支持aliyun rds的binlog订阅 (解决自动主备切换/oss binlog离线解析) 参考: [Aliyun RDS QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
 - 原生支持docker镜像 #801 参考: [Docker QuickStart](https://github.com/alibaba/canal/wiki/Docker-QuickStart)
-
-2.  canal 1.1.4版本，迎来最重要的WebUI能力，引入canal-admin工程，支持面向WebUI的canal动态管理能力，支持配置、任务、日志等在线白屏运维能力，具体文档：[Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal-Admin-Guide)
 
 ## 文档
 
@@ -58,11 +60,6 @@
   - [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart")
   - [Aliyun RDS for MySQL QuickStart](https://github.com/alibaba/canal/wiki/aliyun-RDS-QuickStart)
   - [Prometheus QuickStart](https://github.com/alibaba/canal/wiki/Prometheus-QuickStart)
-- Canal Admin
-  - [Canal Admin QuickStart](https://github.com/alibaba/canal/wiki/Canal-Admin-QuickStart)
-  - [Canal Admin Guide](https://github.com/alibaba/canal/wiki/Canal-Admin-Guide)
-  - [Canal Admin ServerGuide](https://github.com/alibaba/canal/wiki/Canal-Admin-ServerGuide)
-  - [Canal Admin Docker](https://github.com/alibaba/canal/wiki/Canal-Admin-Docker)
 - [AdminGuide](https://github.com/alibaba/canal/wiki/AdminGuide)
 - [ClientExample](https://github.com/alibaba/canal/wiki/ClientExample)
 - [ClientAPI](https://github.com/alibaba/canal/wiki/ClientAPI)
@@ -84,19 +81,20 @@ canal 特别设计了 client-server 模式，交互协议使用 protobuf 3.0 , c
 - canal go客户端: [https://github.com/CanalClient/canal-go](https://github.com/CanalClient/canal-go)
 - canal php客户端: [https://github.com/xingwenge/canal-php](https://github.com/xingwenge/canal-php)
 - canal Python客户端：[https://github.com/haozi3156666/canal-python](https://github.com/haozi3156666/canal-python)
-- canal Rust客户端：[https://github.com/laohanlinux/canal-rs](https://github.com/laohanlinux/canal-rs)
 
 canal 作为 MySQL binlog 增量获取和解析工具，可将变更记录投递到 MQ 系统中，比如 Kafka/RocketMQ，可以借助于 MQ 的多语言能力 
 
 - 参考文档: [Canal Kafka/RocketMQ QuickStart](https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart)
 
-## 相关开源&产品
+## 相关开源
 
 - [canal 消费端开源项目: Otter](http://github.com/alibaba/otter)
 - [阿里巴巴去 Oracle 数据迁移同步工具: yugong](http://github.com/alibaba/yugong)
-- [阿里巴巴离线同步开源项目 DataX](https://github.com/alibaba/datax)
-- [阿里巴巴数据库连接池开源项目 Druid](https://github.com/alibaba/druid)
-- [阿里巴巴实时数据同步工具 DTS](https://www.aliyun.com/product/dts)
 
 ## 问题反馈
+- 邮件: jianghang115@gmail.com
 - 报告 issue: [github issues](https://github.com/alibaba/canal/issues)
+
+## 其他资料
+
+  - [ ADC 阿里技术嘉年华分享 ppt ( google docs)](https://docs.google.com/presentation/d/1MkszUPYRDkfVPz9IqOT1LLT5d9tuwde_WC8GZvjaDRg/edit?usp=sharing) 

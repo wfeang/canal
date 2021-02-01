@@ -30,7 +30,7 @@ public class AviaterSimpleFilter implements CanalEventFilter<String> {
 
     public AviaterSimpleFilter(String filterExpression){
         if (StringUtils.isEmpty(filterExpression)) {
-            list = new ArrayList<>();
+            list = new ArrayList<String>();
         } else {
             String[] ss = filterExpression.toLowerCase().split(SPLIT);
             list = Arrays.asList(ss);
@@ -44,7 +44,7 @@ public class AviaterSimpleFilter implements CanalEventFilter<String> {
         if (StringUtils.isEmpty(filtered)) {
             return true;
         }
-        Map<String, Object> env = new HashMap<>();
+        Map<String, Object> env = new HashMap<String, Object>();
         env.put("list", list);
         env.put("target", filtered.toLowerCase());
         return (Boolean) exp.execute(env);
