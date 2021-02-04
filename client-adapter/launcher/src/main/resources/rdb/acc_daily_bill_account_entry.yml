@@ -1,0 +1,23 @@
+dataSourceKey: ngpDS
+destination: ngp
+groupId: g1
+outerAdapterKey: gp-ngp
+concurrent: true
+dbMapping:
+  database: ngp_row
+  table: acc_daily_bill_account_entry
+  targetTable: public.acc_daily_bill_account_entry
+  targetPk:
+    id: id
+  mapAll: true
+  pk: id
+  sql: select * from acc_daily_bill_account_entry
+  # targetColumns:
+  #  id::q
+  #  name:
+  #  role_id:
+  #  c_time:
+  #  test1:
+  etlCondition: " order by id"
+  commitBatch: 500 #
+

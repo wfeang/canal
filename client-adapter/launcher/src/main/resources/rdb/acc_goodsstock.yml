@@ -1,0 +1,23 @@
+dataSourceKey: ngpDS
+destination: ngp
+groupId: g1
+outerAdapterKey: gp-ngp
+concurrent: true
+dbMapping:
+  database: ngp_row
+  table: acc_goodsstock
+  targetTable: public.acc_goodsstock
+  targetPk:
+    id: id
+  mapAll: true
+  pk: id
+  sql: select * from acc_goodsstock
+  # targetColumns:
+  #  id::q
+  #  name:
+  #  role_id:
+  #  c_time:
+  #  test1:
+  etlCondition: " order by id"
+  commitBatch: 500 #
+

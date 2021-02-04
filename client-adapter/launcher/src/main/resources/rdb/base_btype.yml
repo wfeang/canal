@@ -1,0 +1,23 @@
+dataSourceKey: ngpDS
+destination: ngp
+groupId: g1
+outerAdapterKey: gp-ngp
+concurrent: true
+dbMapping:
+  database: ngp_row
+  table: base_btype
+  targetTable: public.base_btype
+  targetPk:
+    id: id
+  mapAll: true
+  pk: id
+  sql: select * from base_btype
+  # targetColumns:
+  #  id::q
+  #  name:
+  #  role_id:
+  #  c_time:
+  #  test1:
+  etlCondition: " order by id"
+  commitBatch: 500 #
+

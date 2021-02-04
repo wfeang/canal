@@ -1,0 +1,23 @@
+dataSourceKey: ngpDS
+destination: ngp
+groupId: g1
+outerAdapterKey: gp-ngp
+concurrent: true
+dbMapping:
+  database: ngp_row
+  table: pl_buyer
+  targetTable: public.pl_buyer
+  targetPk:
+    id: id
+  mapAll: true
+  pk: id
+  sql: select * from pl_buyer
+  # targetColumns:
+  #  id::q
+  #  name:
+  #  role_id:
+  #  c_time:
+  #  test1:
+  etlCondition: " order by buyer_id"
+  commitBatch: 500 #
+
