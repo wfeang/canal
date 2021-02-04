@@ -4,7 +4,7 @@ groupId: g1
 outerAdapterKey: gp-ngp
 concurrent: true
 dbMapping:
-  database: ngp_row
+  database: ngp_erptable
   table: base_ptype_xcode
   targetTable: public.base_ptype_xcode
   targetPk:

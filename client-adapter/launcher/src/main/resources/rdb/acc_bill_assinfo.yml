@@ -4,13 +4,13 @@ groupId: g1
 outerAdapterKey: gp-ngp
 concurrent: true
 dbMapping:
-  database: ngp_row
+  database: ngp_erptable
   table: acc_bill_assinfo
   targetTable: public.acc_bill_assinfo
   targetPk:
-    id: id
+    vchcode: vchcode
   mapAll: true
-  pk: id
+  pk: vchcode
   sql: select * from acc_bill_assinfo
   # targetColumns:
   #  id::q

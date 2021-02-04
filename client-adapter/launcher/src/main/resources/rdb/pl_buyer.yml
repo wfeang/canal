@@ -4,13 +4,13 @@ groupId: g1
 outerAdapterKey: gp-ngp
 concurrent: true
 dbMapping:
-  database: ngp_row
+  database: ngp_erptable
   table: pl_buyer
   targetTable: public.pl_buyer
   targetPk:
-    id: id
+    buyer_id: buyer_id
   mapAll: true
-  pk: id
+  pk: buyer_id
   sql: select * from pl_buyer
   # targetColumns:
   #  id::q

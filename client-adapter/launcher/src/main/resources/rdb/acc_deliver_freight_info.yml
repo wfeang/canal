@@ -4,13 +4,13 @@ groupId: g1
 outerAdapterKey: gp-ngp
 concurrent: true
 dbMapping:
-  database: ngp_row
+  database: ngp_erptable
   table: acc_deliver_freight_info
   targetTable: public.acc_deliver_freight_info
   targetPk:
-    id: id
+    freight_info_id: freight_info_id
   mapAll: true
-  pk: id
+  pk: freight_info_id
   sql: select * from acc_deliver_freight_info
   # targetColumns:
   #  id::q
